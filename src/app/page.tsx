@@ -32,7 +32,7 @@ async function getProducts() {
   }
 }
 
-export default async function TechStoreCatalogPage() {
+export default async function ElectronicaMenuPage() {
   const products = await getProducts();
 
   const categoriesMap: { [key: string]: any[] } = {};
@@ -41,8 +41,7 @@ export default async function TechStoreCatalogPage() {
     products.forEach((prod: any) => {
       if (!prod || !prod.name) return;
       
-      // Categoría por defecto adaptada a tecnología
-      const cat = prod.category || 'EQUIPOS Y ACCESORIOS';
+      const cat = prod.category || 'TECNOLOGÍA Y ACCESORIOS';
       if (!categoriesMap[cat]) {
         categoriesMap[cat] = [];
       }
@@ -51,19 +50,19 @@ export default async function TechStoreCatalogPage() {
         name: prod.name,
         description: prod.description || '',
         price: prod.price_usd ? Number(prod.price_usd) : 0,
-        image: prod.image_url || ''
+        image: prod.image_url || '' // Pasamos la URL limpia de la imagen
       });
     });
   }
 
-  const catalogCategories = Object.keys(categoriesMap).map(cat => ({
+  const menuCategories = Object.keys(categoriesMap).map(cat => ({
     category: cat,
     items: categoriesMap[cat]
   }));
 
   return (
-    <main className="min-h-screen bg-[#090d16] text-slate-100 flex flex-col justify-between selection:bg-blue-600 selection:text-white pb-24">
-      <ClientMenu initialCategories={catalogCategories} />
+    <main className="min-h-screen bg-[#080D0C] text-white flex flex-col justify-between selection:bg-[#007F66] selection:text-white pb-24">
+      <ClientMenu initialCategories={menuCategories} />
     </main>
   );
 }
