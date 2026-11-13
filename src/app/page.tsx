@@ -32,7 +32,7 @@ async function getProducts() {
   }
 }
 
-export default async function TakosushiMenuPage() {
+export default async function TechStoreCatalogPage() {
   const products = await getProducts();
 
   const categoriesMap: { [key: string]: any[] } = {};
@@ -41,7 +41,8 @@ export default async function TakosushiMenuPage() {
     products.forEach((prod: any) => {
       if (!prod || !prod.name) return;
       
-      const cat = prod.category || 'COMBOS Y ROLLS';
+      // Categoría por defecto adaptada a tecnología si el producto viene sin categoría en BD
+      const cat = prod.category || 'EQUIPOS Y ACCESORIOS';
       if (!categoriesMap[cat]) {
         categoriesMap[cat] = [];
       }
@@ -55,14 +56,14 @@ export default async function TakosushiMenuPage() {
     });
   }
 
-  const menuCategories = Object.keys(categoriesMap).map(cat => ({
+  const catalogCategories = Object.keys(categoriesMap).map(cat => ({
     category: cat,
     items: categoriesMap[cat]
   }));
 
   return (
-    <main className="min-h-screen bg-[#140005] text-white flex flex-col justify-between selection:bg-[#ff007f] selection:text-white pb-24">
-      <ClientMenu initialCategories={menuCategories} />
+    <main className="min-h-screen bg-[#090d16] text-slate-100 flex flex-col justify-between selection:bg-blue-600 selection:text-white pb-24">
+      <ClientMenu initialCategories={catalogCategories} />
     </main>
   );
 }
