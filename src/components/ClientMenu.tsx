@@ -1,96 +1,107 @@
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+                        Dirección Exacta:
+                      </label>
 
-'use client';
+                      <input
+                        type="text"
+                        placeholder="Ej. Urb. Trapichito, Calle 3..."
+                        value={deliveryAddress}
+                        onChange={(e) =>
+                          setDeliveryAddress(e.target.value)
+                        }
+                        className="w-full bg-[#111B17] border border-[#243A32] rounded-xl px-2.5 py-1.5 text-xs text-white"
+                      />
+                    </div>
+                  </div>
+                )}
 
-import { useEffect, useState, useMemo } from 'react';
-import Link from 'next/link';
+                {/* MÉTODO DE PAGO */}
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+                    Método de Pago:
+                  </label>
 
-interface MenuItem {
-  id: number;
-  name: string;
-  price: number;
-  description?: string;
-  image?: string;
+                  <select
+                    value={paymentMethod}
+                    onChange={(e) =>
+                      setPaymentMethod(e.target.value)
+                    }
+                    className="w-full bg-[#080D0C] border border-[#243A32] rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#007F66]"
+                  >
+                    <option value="Pago Móvil (Bs)">
+                      📱 Pago Móvil (Bolívares)
+                    </option>
+
+                    <option value="Efectivo / Divisas">
+                      💵 Efectivo Divisas ($)
+                    </option>
+
+                    <option value="Zelle / Binance">
+                      🌐 Zelle / Binance
+                    </option>
+                  </select>
+                </div>
+
+                {/* DESGLOSE FINANCIERO */}
+                <div className="bg-[#080D0C] p-3.5 rounded-2xl border border-[#243A32] space-y-1.5 text-xs">
+                  <div className="flex justify-between text-slate-400">
+                    <span>Subtotal Productos:</span>
+                    <span>${subtotalPrice.toFixed(2)}</span>
+                  </div>
+
+                  {orderType === 'Delivery' && (
+                    <div className="flex justify-between text-slate-400">
+                      <span>
+                        Envío Delivery ({deliveryZone}):
+                      </span>
+
+                      <span>${deliveryCost.toFixed(2)}</span>
+                    </div>
+                  )}
+
+                  <div className="flex justify-between font-black text-sm text-emerald-300 pt-2 border-t border-[#243A32]">
+                    <span>Total USD:</span>
+                    <span>${totalPrice}</span>
+                  </div>
+
+                  <div className="flex justify-between font-bold text-slate-300">
+                    <span>
+                      Total Bolívares (Tasa {exchangeRate.toFixed(2)}):
+                    </span>
+
+                    <span>Bs. {totalBs}</span>
+                  </div>
+                </div>
+
+                {/* CONFIRMAR PEDIDO */}
+                <button
+                  onClick={checkoutWhatsApp}
+                  disabled={
+                    isSubmitting ||
+                    isLoadingExchangeRate ||
+                    !orderType
+                  }
+                  className="w-full bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed text-white py-3 rounded-2xl font-extrabold text-xs sm:text-sm shadow-xl shadow-emerald-600/30 transition flex items-center justify-center gap-2"
+                >
+                  {isSubmitting
+                    ? 'Procesando...'
+                    : isLoadingExchangeRate
+                    ? 'Actualizando tasa...'
+                    : !orderType
+                    ? 'Selecciona cómo recibir tu pedido'
+                    : '🟢 Confirmar y Enviar Pedido'}
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* FOOTER */}
+      <footer className="border-t border-slate-900 py-6 text-center text-xs text-slate-500 bg-[#080D0C]">
+        <p>Tech Store • Guarenas y Guatire.</p>
+      </footer>
+    </div>
+  );
 }
-
-interface MenuCategory {
-  category: string;
-  items: MenuItem[];
-}
-
-export default function ClientMenu({
-  initialCategories,
-}: {
-  initialCategories: MenuCategory[];
-}) {
-  const [cart, setCart] = useState<
-    {
-      id: number;
-      name: string;
-      price: number;
-      quantity: number;
-    }[]
-  >([]);
-
-  const [isCartOpen, setIsCartOpen] = useState(false);
-  const [customerName, setCustomerName] = useState('');
-  const [customerPhone, setCustomerPhone] = useState('');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<string>('Todos');
-
-  // El cliente debe seleccionar obligatoriamente la modalidad.
-  const [orderType, setOrderType] = useState('');
-  const [deliveryZone, setDeliveryZone] = useState('Guarenas');
-  const [deliveryAddress, setDeliveryAddress] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState('Pago Móvil (Bs)');
-
-  // Tasa de cambio BCV
-  const [exchangeRate, setExchangeRate] = useState(778.33);
-  const [isLoadingExchangeRate, setIsLoadingExchangeRate] = useState(true);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  // ============================================================
-  // CARGAR TASA BCV
-  // ============================================================
-  useEffect(() => {
-    let isMounted = true;
-
-    const loadExchangeRate = async () => {
-      try {
-        setIsLoadingExchangeRate(true);
-
-        const response = await fetch('/api/exchange-rate', {
-          method: 'GET',
-          cache: 'no-store',
-        });
-
-        const data = await response.json();
-
-        if (
-          isMounted &&
-          response.ok &&
-          data?.success &&
-          Number(data.rate) > 0
-        ) {
-          setExchangeRate(Number(data.rate));
-        }
-      } catch (error) {
-        console.error('Error obteniendo la tasa de cambio:', error);
-      } finally {
-        if (isMounted) setIsLoadingExchangeRate(false);
-      }
-    };
-
-    loadExchangeRate();
-
-    const interval = setInterval(loadExchangeRate, 60000);
-
-    return () => {
-      isMounted = false;
-      clearInterval(interval);
-    };
-  }, []);
-
-  // ============================================================
-  // FILTRADO DE PRODUCTOS
-  // ============================================================
-  const filteredCategories = useMemo(() => {
