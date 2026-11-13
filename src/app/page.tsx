@@ -32,7 +32,7 @@ async function getProducts() {
   }
 }
 
-export default async function ElectronicaMenuPage() {
+export default async function TakosushiMenuPage() {
   const products = await getProducts();
 
   const categoriesMap: { [key: string]: any[] } = {};
@@ -41,7 +41,7 @@ export default async function ElectronicaMenuPage() {
     products.forEach((prod: any) => {
       if (!prod || !prod.name) return;
       
-      const cat = prod.category || 'TECNOLOGÍA Y ACCESORIOS';
+      const cat = prod.category || 'COMBOS Y ROLLS';
       if (!categoriesMap[cat]) {
         categoriesMap[cat] = [];
       }
@@ -61,7 +61,7 @@ export default async function ElectronicaMenuPage() {
   }));
 
   return (
-    <main className="min-h-screen bg-[#080D0C] text-white flex flex-col justify-between selection:bg-[#007F66] selection:text-white pb-24">
+    <main className="min-h-screen bg-[#140005] text-white flex flex-col justify-between selection:bg-[#ff007f] selection:text-white pb-24">
       <ClientMenu initialCategories={menuCategories} />
     </main>
   );
