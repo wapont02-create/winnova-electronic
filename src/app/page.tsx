@@ -41,7 +41,7 @@ export default async function TechStoreCatalogPage() {
     products.forEach((prod: any) => {
       if (!prod || !prod.name) return;
       
-      // Categoría por defecto adaptada a tecnología si el producto viene sin categoría en BD
+      // Categoría por defecto adaptada a tecnología
       const cat = prod.category || 'EQUIPOS Y ACCESORIOS';
       if (!categoriesMap[cat]) {
         categoriesMap[cat] = [];
@@ -51,7 +51,7 @@ export default async function TechStoreCatalogPage() {
         name: prod.name,
         description: prod.description || '',
         price: prod.price_usd ? Number(prod.price_usd) : 0,
-        image: prod.image_url || '' // Pasamos la URL limpia de la imagen
+        image: prod.image_url || ''
       });
     });
   }
