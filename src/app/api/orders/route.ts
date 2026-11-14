@@ -1,25 +1,16 @@
+
 import { NextResponse } from 'next/server';
 import { runQuery } from '@/db/client';
 
-async function sql(
-  db: any,
-  query: string,
-  params: any[] = []
-) {
+async function sql(db: any, query: string, params: any[] = []) {
   return params.length > 0
     ? await db.sql(query, ...params)
     : await db.sql(query);
 }
 
 function extractRows(result: any): any[] {
-  if (Array.isArray(result)) {
-    return result;
-  }
-
-  if (result?.rows && Array.isArray(result.rows)) {
-    return result.rows;
-  }
-
+  if (Array.isArray(result)) return result;
+  if (result?.rows && Array.isArray(result.rows)) return result.rows;
   return [];
 }
 
@@ -39,77 +30,111 @@ export async function POST(request: Request) {
       totalBs,
       exchangeRate,
       paymentMethod,
-      created_at
+      paymentReference,
+      paymentProofUrl,
+      shippingCompany,
+      recipientName,
+      recipientPhone,
+      destinationState,
+      destinationCity,
+      created_at,
     } = body;
 
-    if (!customerName || !String(customerName).trim()) {
+    const name = String(customerName ?? '').trim();
+    const phone = String(customerPhone ?? '').trim();
+    const document = String(customerDocument ?? '').trim();
+    const reference = String(paymentReference ?? '').trim();
+    const proofUrl = String(paymentProofUrl ?? '').trim();
+    const address = String(deliveryAddress ?? '').trim();
+    const recipient = String(recipientName ?? name).trim();
+    const recipientTel = String(recipientPhone ?? phone).trim();
+    const state = String(destinationState ?? '').trim();
+    const city = String(destinationCity ?? '').trim();
+    const company = String(shippingCompany ?? '').trim();
+
+    const allowedOrderTypes = [
+      'Delivery',
+      'Retiro en tienda',
+      'Envío nacional',
+    ];
+
+    const allowedPayments = [
+      'Pago Móvil',
+      'Binance',
+      'PayPal',
+    ];
+
+    if (!name || !phone) {
       return NextResponse.json(
-        {
-          success: false,
-          message: 'El nombre del cliente es obligatorio.'
-        },
+        { success: false, message: 'El nombre y teléfono del cliente son obligatorios.' },
         { status: 400 }
       );
+    }
+
+    if (!allowedOrderTypes.includes(String(orderType))) {
+      return NextResponse.json(
+        { success: false, message: 'Selecciona una modalidad de entrega válida.' },
+        { status: 400 }
+      );
+    }
+
+    if (!allowedPayments.includes(String(paymentMethod))) {
+      return NextResponse.json(
+        { success: false, message: 'Selecciona un método de pago válido.' },
+        { status: 400 }
+      );
+    }
+
+    if (!reference || !proofUrl) {
+      return NextResponse.json(
+        { success: false, message: 'Debes indicar la referencia y adjuntar el comprobante de pago.' },
+        { status: 400 }
+      );
+    }
+
+    if (orderType === 'Delivery') {
+      if (!['Guarenas', 'Guatire'].includes(String(deliveryZone))) {
+        return NextResponse.json(
+          { success: false, message: 'La zona de delivery no es válida.' },
+          { status: 400 }
+        );
+      }
+
+      if (!address) {
+        return NextResponse.json(
+          { success: false, message: 'Debes indicar la dirección exacta del delivery.' },
+          { status: 400 }
+        );
+      }
+    }
+
+    if (orderType === 'Envío nacional') {
+      if (!['Zoom', 'MRW'].includes(company) || !state || !city || !address) {
+        return NextResponse.json(
+          { success: false, message: 'Completa la empresa de envío, estado, ciudad y dirección de destino.' },
+          { status: 400 }
+        );
+      }
     }
 
     if (!Array.isArray(items) || items.length === 0) {
       return NextResponse.json(
-        {
-          success: false,
-          message:
-            'El pedido debe contener al menos un producto.'
-        },
-        { status: 400 }
-      );
-    }
-
-    if (!Number.isFinite(Number(total)) || Number(total) < 0) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: 'El total del pedido no es válido.'
-        },
-        { status: 400 }
-      );
-    }
-
-    if (!Number.isFinite(Number(totalBs)) || Number(totalBs) < 0) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: 'El total en Bs no es válido.'
-        },
-        { status: 400 }
-      );
-    }
-
-    if (
-      !Number.isFinite(Number(exchangeRate)) ||
-      Number(exchangeRate) <= 0
-    ) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: 'La tasa de cambio no es válida.'
-        },
+        { success: false, message: 'El pedido debe contener al menos un producto.' },
         { status: 400 }
       );
     }
 
     const normalizedItems = items.map((item: any) => ({
-      product_id: Number(
-        item.id ?? item.product_id
-      ),
-      name: String(item.name ?? ''),
+      product_id: Number(item.id ?? item.product_id),
       quantity: Number(item.quantity),
-      price: Number(item.price)
+      price: Number(item.price),
     }));
 
     const invalidItem = normalizedItems.find(
-      item =>
+      (item) =>
         !Number.isInteger(item.product_id) ||
         item.product_id <= 0 ||
-        !Number.isFinite(item.quantity) ||
+        !Number.isInteger(item.quantity) ||
         item.quantity <= 0 ||
         !Number.isFinite(item.price) ||
         item.price < 0
@@ -117,11 +142,46 @@ export async function POST(request: Request) {
 
     if (invalidItem) {
       return NextResponse.json(
-        {
-          success: false,
-          message:
-            'Uno o más productos del pedido no son válidos.'
-        },
+        { success: false, message: 'Uno o más productos del pedido no son válidos.' },
+        { status: 400 }
+      );
+    }
+
+    const subtotal = normalizedItems.reduce(
+      (sum, item) => sum + item.price * item.quantity,
+      0
+    );
+
+    const deliveryCost =
+      orderType === 'Delivery' && deliveryZone === 'Guatire' ? 2 : 0;
+
+    const expectedTotal = Number((subtotal + deliveryCost).toFixed(2));
+    const receivedTotal = Number(total);
+    const rate = Number(exchangeRate);
+    const receivedBs = Number(totalBs);
+
+    if (
+      !Number.isFinite(receivedTotal) ||
+      !Number.isFinite(rate) ||
+      rate <= 0 ||
+      !Number.isFinite(receivedBs)
+    ) {
+      return NextResponse.json(
+        { success: false, message: 'Los totales o la tasa de cambio no son válidos.' },
+        { status: 400 }
+      );
+    }
+
+    if (Math.abs(receivedTotal - expectedTotal) > 0.02) {
+      return NextResponse.json(
+        { success: false, message: 'El total enviado no coincide con los productos y el delivery.' },
+        { status: 400 }
+      );
+    }
+
+    if (Math.abs(receivedBs - Number((expectedTotal * rate).toFixed(2))) > 1) {
+      return NextResponse.json(
+        { success: false, message: 'El total en bolívares no coincide con la tasa indicada.' },
         { status: 400 }
       );
     }
@@ -129,211 +189,105 @@ export async function POST(request: Request) {
     const result = await runQuery(async (db) => {
       let customerId: number | null = null;
 
-      const phone = String(
-        customerPhone ?? ''
-      ).trim();
-
-      const name = String(
-        customerName ?? ''
-      ).trim();
-
-      const document = String(
-        customerDocument ?? ''
-      ).trim();
-
-      // Buscar por teléfono
       if (phone) {
-        const existingByPhone = extractRows(
-          await sql(
-            db,
-            `
-              SELECT id
-              FROM customers
-              WHERE phone = ?
-              LIMIT 1
-            `,
-            [phone]
-          )
+        const rows = extractRows(
+          await sql(db, 'SELECT id FROM customers WHERE phone = ? LIMIT 1', [phone])
         );
-
-        if (existingByPhone.length > 0) {
-          customerId = Number(
-            existingByPhone[0].id
-          );
-        }
+        if (rows.length) customerId = Number(rows[0].id);
       }
 
-      // Buscar por documento
       if (!customerId && document) {
-        const existingByDocument = extractRows(
-          await sql(
-            db,
-            `
-              SELECT id
-              FROM customers
-              WHERE rif_ci = ?
-              LIMIT 1
-            `,
-            [document]
-          )
+        const rows = extractRows(
+          await sql(db, 'SELECT id FROM customers WHERE rif_ci = ? LIMIT 1', [document])
         );
-
-        if (existingByDocument.length > 0) {
-          customerId = Number(
-            existingByDocument[0].id
-          );
-        }
+        if (rows.length) customerId = Number(rows[0].id);
       }
 
-      // Buscar por nombre
       if (!customerId) {
-        const existingByName = extractRows(
-          await sql(
-            db,
-            `
-              SELECT id
-              FROM customers
-              WHERE name = ?
-              LIMIT 1
-            `,
-            [name]
-          )
+        const rows = extractRows(
+          await sql(db, 'SELECT id FROM customers WHERE name = ? LIMIT 1', [name])
         );
-
-        if (existingByName.length > 0) {
-          customerId = Number(
-            existingByName[0].id
-          );
-        }
+        if (rows.length) customerId = Number(rows[0].id);
       }
 
-      // Crear cliente
       if (!customerId) {
-        const customerResult = extractRows(
+        const rows = extractRows(
           await sql(
             db,
-            `
-              INSERT INTO customers (
-                name,
-                rif_ci,
-                phone
-              )
-              VALUES (?, ?, ?)
-              RETURNING id
-            `,
-            [
-              name,
-              document || null,
-              phone || null
-            ]
+            `INSERT INTO customers (name, rif_ci, phone)
+             VALUES (?, ?, ?) RETURNING id`,
+            [name, document || null, phone]
           )
         );
 
-        if (customerResult.length === 0) {
-          throw new Error(
-            'No se pudo crear el cliente.'
-          );
-        }
-
-        customerId = Number(
-          customerResult[0].id
-        );
+        if (!rows.length) throw new Error('No se pudo registrar el cliente.');
+        customerId = Number(rows[0].id);
       }
 
-      // Crear pedido web
-      const saleResult = extractRows(
+      const saleRows = extractRows(
         await sql(
           db,
-          `
-            INSERT INTO sales (
-              customer_id,
-              total_usd,
-              payment_method,
-              created_at,
-              cash_register_id,
-              total_ves,
-              exchange_rate,
-              status,
-              source,
-              order_type,
-              delivery_zone,
-              delivery_address
-            )
-            VALUES (
-              ?,
-              ?,
-              ?,
-              ?,
-              NULL,
-              ?,
-              ?,
-              'pendiente',
-              'web',
-              ?,
-              ?,
-              ?
-            )
-            RETURNING id
-          `,
+          `INSERT INTO sales (
+            customer_id,
+            total_usd,
+            payment_method,
+            created_at,
+            cash_register_id,
+            total_ves,
+            exchange_rate,
+            status,
+            source,
+            order_type,
+            delivery_zone,
+            delivery_address,
+            payment_reference,
+            payment_proof_url,
+            shipping_company,
+            recipient_name,
+            recipient_phone,
+            destination_state,
+            destination_city
+          ) VALUES (?, ?, ?, ?, NULL, ?, ?, 'pendiente', 'web', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          RETURNING id`,
           [
             customerId,
-            Number(total),
-            String(paymentMethod ?? ''),
-            created_at
-              ? String(created_at)
-              : new Date().toISOString(),
-            Number(totalBs),
-            Number(exchangeRate),
-            String(
-              orderType ??
-                'Local / Mesa'
-            ),
-            String(
-              deliveryZone ?? ''
-            ),
-            String(
-              deliveryAddress ?? ''
-            )
+            expectedTotal,
+            String(paymentMethod),
+            created_at ? String(created_at) : new Date().toISOString(),
+            Number((expectedTotal * rate).toFixed(2)),
+            rate,
+            String(orderType),
+            orderType === 'Delivery' ? String(deliveryZone) : '',
+            address || null,
+            reference,
+            proofUrl,
+            orderType === 'Envío nacional' ? company : null,
+            recipient,
+            recipientTel,
+            orderType === 'Envío nacional' ? state : null,
+            orderType === 'Envío nacional' ? city : null,
           ]
         )
       );
 
-      if (saleResult.length === 0) {
-        throw new Error(
-          'No se pudo crear el pedido web.'
-        );
-      }
+      if (!saleRows.length) throw new Error('No se pudo registrar el pedido.');
 
-      const saleId = Number(
-        saleResult[0].id
-      );
+      const saleId = Number(saleRows[0].id);
 
-      // Guardar productos del pedido
       for (const item of normalizedItems) {
         await sql(
           db,
-          `
-            INSERT INTO sale_items (
-              sale_id,
-              product_id,
-              quantity,
-              price_at_sale
-            )
-            VALUES (?, ?, ?, ?)
-          `,
-          [
-            saleId,
-            item.product_id,
-            item.quantity,
-            item.price
-          ]
+          `INSERT INTO sale_items (
+            sale_id,
+            product_id,
+            quantity,
+            price_at_sale
+          ) VALUES (?, ?, ?, ?)`,
+          [saleId, item.product_id, item.quantity, item.price]
         );
       }
 
-      return {
-        saleId,
-        customerId
-      };
+      return { saleId, customerId };
     });
 
     return NextResponse.json({
@@ -342,22 +296,17 @@ export async function POST(request: Request) {
       saleId: result.saleId,
       customerId: result.customerId,
       status: 'pendiente',
-      message:
-        'Pedido recibido correctamente y enviado a revisión.'
+      message: 'Pedido recibido. Está pendiente de verificación del pago.',
     });
   } catch (error) {
-    console.error(
-      'POST /api/orders error:',
-      error
-    );
+    console.error('POST /api/orders error:', error);
 
     return NextResponse.json(
       {
         success: false,
-        message:
-          error instanceof Error
-            ? error.message
-            : 'Error interno al procesar el pedido.'
+        message: error instanceof Error
+          ? error.message
+          : 'Error interno al procesar el pedido.',
       },
       { status: 500 }
     );
