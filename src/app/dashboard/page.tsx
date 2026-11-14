@@ -573,10 +573,7 @@ export default function DashboardPOS() {
 
   const [categoriesList, setCategoriesList] =
     useState<string[]>([
-      'Comida',
-      'Bebidas',
-      'COMBOS ESPECIALES',
-      'ROLLS FAVORITOS'
+     
     ]);
 
   const [newCategoryInput, setNewCategoryInput] =
