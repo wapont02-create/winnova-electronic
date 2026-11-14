@@ -1,3 +1,99 @@
+'use client';
+
+import { useEffect, useMemo, useState } from 'react';
+import Link from 'next/link';
+
+interface MenuItem {
+  id: number;
+  name: string;
+  price: number;
+  description?: string;
+  image?: string;
+}
+
+interface MenuCategory {
+  category: string;
+  items: MenuItem[];
+}
+
+interface CartItem {
+  id: number;
+  name: string;
+  price: number;
+  quantity: number;
+}
+
+const BRAND = 'WINNOVA ELECTRONIC';
+const WHATSAPP_PHONE = '584129269308'; // Sustituir por el WhatsApp de la tienda cuando corresponda.
+const BLUE = '#1677FF';
+
+export default function ClientMenu({
+  initialCategories,
+}: {
+  initialCategories: MenuCategory[];
+}) {
+  const [cart, setCart] = useState<CartItem[]>([]);
+  const [isCartOpen, setIsCartOpen] = useState(false);
+  const [customerName, setCustomerName] = useState('');
+  const [customerPhone, setCustomerPhone] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('Todos');
+  const [orderType, setOrderType] = useState('');
+  const [deliveryZone, setDeliveryZone] = useState('Guarenas');
+  const [deliveryAddress, setDeliveryAddress] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState('Pago Móvil (Bs)');
+  const [exchangeRate, setExchangeRate] = useState(778.33);
+  const [isLoadingExchangeRate, setIsLoadingExchangeRate] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    let isMounted = true;
+    const loadExchangeRate = async () => {
+      try {
+        setIsLoadingExchangeRate(true);
+        const response = await fetch('/api/exchange-rate', {
+          method: 'GET',
+          cache: 'no-store',
+        });
+        const data = await response.json();
+        if (isMounted && response.ok && data?.success && Number(data.rate) > 0) {
+          setExchangeRate(Number(data.rate));
+        }
+      } catch (error) {
+        console.error('Error obteniendo la tasa de cambio:', error);
+      } finally {
+        if (isMounted) setIsLoadingExchangeRate(false);
+      }
+    };
+    loadExchangeRate();
+    const interval = setInterval(loadExchangeRate, 60000);
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
+  }, []);
+
+  const filteredCategories = useMemo(
+    () =>
+      initialCategories
+        .map((cat) => ({
+          ...cat,
+          items: cat.items.filter(
+            (item) =>
+              item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+              (item.description || '').toLowerCase().includes(searchQuery.toLowerCase()),
+          ),
+        }))
+        .filter(
+          (cat) =>
+            (selectedCategory === 'Todos' || cat.category === selectedCategory) &&
+            cat.items.length > 0,
+        ),
+    [initialCategories, searchQuery, selectedCategory],
+  );
+
+  const addToCart = (product: MenuItem) => {
+    setCart((prev) => {
       const existing = prev.find((item) => item.id === product.id);
       if (existing) {
         return prev.map((item) =>
@@ -94,7 +190,23 @@
 
   return (
     <div className="min-h-screen w-full overflow-x-hidden bg-[#F3F6FB] font-sans text-slate-900 selection:bg-blue-200">
-      <header className="sticky top-0 z-40 border-b border-slate-200/80 bg-white/95 shadow-sm backdrop-blur-xl">
+      <aside className="fixed inset-y-0 left-0 z-40 hidden w-64 flex-col border-r border-slate-200 bg-white px-5 py-6 shadow-sm lg:flex">
+        <div className="flex items-center gap-3 border-b border-slate-100 pb-6">
+          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-blue-800 text-white shadow-lg shadow-blue-600/25">
+            <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="13" rx="2" /><path d="M8 21h8M12 17v4M7 9h10M7 12h6" /></svg>
+          </div>
+          <div><p className="text-xs font-black tracking-tight text-slate-950">WINNOVA</p><p className="text-[10px] font-bold tracking-[0.16em] text-blue-600">ELECTRONIC</p></div>
+        </div>
+        <p className="mb-3 mt-7 px-3 text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">Menú principal</p>
+        <nav className="space-y-1">
+          <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="flex w-full items-center gap-3 rounded-xl bg-blue-50 px-3 py-3 text-left text-xs font-extrabold text-blue-700"><span className="text-base">⌂</span> Inicio</button>
+          <button onClick={() => document.getElementById('catalogo')?.scrollIntoView({ behavior: 'smooth' })} className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-xs font-bold text-slate-600 transition hover:bg-slate-50 hover:text-blue-700"><span className="text-base">▦</span> Tienda</button>
+          <button onClick={() => document.getElementById('categorias')?.scrollIntoView({ behavior: 'smooth' })} className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-xs font-bold text-slate-600 transition hover:bg-slate-50 hover:text-blue-700"><span className="text-base">◈</span> Categorías</button>
+          <button onClick={() => setIsCartOpen(true)} className="flex w-full items-center justify-between rounded-xl px-3 py-3 text-left text-xs font-bold text-slate-600 transition hover:bg-slate-50 hover:text-blue-700"><span className="flex items-center gap-3"><span className="text-base">🛒</span> Mi carrito</span>{totalItems > 0 && <span className="rounded-full bg-blue-600 px-2 py-0.5 text-[10px] font-black text-white">{totalItems}</span>}</button>
+        </nav>
+        <div className="mt-auto rounded-2xl bg-[#071A36] p-4 text-white"><p className="text-[9px] font-black uppercase tracking-[0.18em] text-cyan-300">Winnova Tech</p><p className="mt-2 text-xs font-bold leading-relaxed">Tecnología para conectar con lo que necesitas.</p><Link href="/login" className="mt-4 inline-flex text-[10px] font-bold text-cyan-300 hover:text-white">Acceso POS →</Link></div>
+      </aside>
+      <header className="sticky top-0 z-40 border-b border-slate-200/80 bg-white/95 shadow-sm backdrop-blur-xl lg:pl-64">
         <div className="mx-auto flex h-[72px] max-w-7xl items-center justify-between gap-3 px-4 sm:px-6">
           <div className="flex min-w-0 items-center gap-3">
             <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-blue-800 text-white shadow-lg shadow-blue-600/25">
@@ -123,8 +235,8 @@
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-7xl px-4 pb-32 pt-5 sm:px-6 sm:pt-8">
-        <section className="relative isolate overflow-hidden rounded-[28px] bg-[#071A36] px-5 py-7 text-white shadow-xl shadow-blue-950/10 sm:px-9 sm:py-10 lg:px-12">
+      <main className="mx-auto w-full max-w-7xl px-4 pb-32 pt-5 sm:px-6 sm:pt-8 lg:ml-64 lg:max-w-none">
+        <section id="inicio" className="relative isolate overflow-hidden rounded-[28px] bg-[#071A36] px-5 py-7 text-white shadow-xl shadow-blue-950/10 sm:px-9 sm:py-10 lg:px-12">
           <div className="absolute -right-20 -top-28 -z-10 h-80 w-80 rounded-full bg-blue-500/30 blur-3xl" />
           <div className="absolute -bottom-32 right-1/4 -z-10 h-72 w-72 rounded-full bg-cyan-400/20 blur-3xl" />
           <div className="grid items-center gap-8 lg:grid-cols-[1.2fr_0.8fr]">
@@ -163,7 +275,7 @@
           </div>
         </section>
 
-        <section className="sticky top-[72px] z-30 -mx-4 mt-5 border-b border-slate-200 bg-[#F3F6FB]/95 px-4 py-3 backdrop-blur-xl sm:-mx-6 sm:px-6">
+        <section id="categorias" className="sticky top-[72px] z-30 -mx-4 mt-5 border-b border-slate-200 bg-[#F3F6FB]/95 px-4 py-3 backdrop-blur-xl sm:-mx-6 sm:px-6">
           <div className="flex gap-2 overflow-x-auto pb-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             <button onClick={() => setSelectedCategory('Todos')} className={`whitespace-nowrap rounded-xl px-4 py-2.5 text-xs font-extrabold transition ${selectedCategory === 'Todos' ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20' : 'border border-slate-200 bg-white text-slate-600 hover:border-blue-200 hover:text-blue-700'}`}>Todos los productos</button>
             {initialCategories.map((cat, idx) => (
@@ -172,7 +284,7 @@
           </div>
         </section>
 
-        <section className="pt-7">
+        <section id="catalogo" className="pt-7">
           <div className="mb-5 flex items-end justify-between gap-3">
             <div>
               <p className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-600">Catálogo Winnova</p>
@@ -190,3 +302,133 @@
             </div>
           ) : (
             filteredCategories.map((cat, idx) => (
+              <div key={`${cat.category}-${idx}`} className="mb-10">
+                <div className="mb-4 flex items-center gap-3">
+                  <h3 className="text-sm font-black uppercase tracking-wider text-slate-800">{cat.category}</h3>
+                  <span className="rounded-md bg-blue-50 px-2 py-1 text-[10px] font-bold text-blue-700">{cat.items.length}</span>
+                  <div className="h-px flex-1 bg-slate-200" />
+                </div>
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                  {cat.items.map((product) => {
+                    const imageUrl = typeof product.image === 'string' ? product.image.trim() : '';
+                    const validImage = imageUrl && imageUrl !== 'NULL' && imageUrl !== 'EMPTY_STRING';
+                    const qty = getItemQuantity(product.id);
+                    return (
+                      <article key={product.id} className="group flex min-w-0 flex-col overflow-hidden rounded-[22px] border border-slate-200 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:border-blue-200 hover:shadow-xl hover:shadow-blue-900/5">
+                        <div className="relative h-52 overflow-hidden bg-gradient-to-br from-slate-100 to-blue-50 sm:h-56">
+                          {validImage ? (
+                            <img src={imageUrl} alt={product.name} loading="lazy" className="h-full w-full object-cover transition duration-500 group-hover:scale-105" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+                          ) : null}
+                          {!validImage && <div className="absolute inset-0 flex flex-col items-center justify-center text-blue-300"><div className="flex h-20 w-20 items-center justify-center rounded-3xl border border-blue-100 bg-white/80 text-4xl shadow-sm">⌁</div><span className="mt-3 text-[9px] font-black uppercase tracking-[0.22em] text-blue-400">Winnova Electronic</span></div>}
+                          <div className="absolute left-3 top-3 rounded-lg border border-white/70 bg-white/90 px-2.5 py-1 text-[9px] font-black uppercase tracking-wider text-blue-700 shadow-sm">Disponible</div>
+                          <div className="absolute bottom-3 right-3 rounded-xl bg-[#071A36]/95 px-3 py-2 text-sm font-black text-white shadow-lg">${Number(product.price || 0).toFixed(2)}</div>
+                        </div>
+                        <div className="flex flex-1 flex-col p-4">
+                          <h4 className="line-clamp-2 min-h-10 text-sm font-extrabold leading-snug text-slate-900 transition group-hover:text-blue-700">{product.name}</h4>
+                          <p className="mt-1 line-clamp-2 min-h-9 text-xs leading-relaxed text-slate-500">{product.description || 'Producto disponible en nuestro catálogo. Consulta los detalles y realiza tu pedido.'}</p>
+                          <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3">
+                            <span className="text-[10px] font-semibold text-slate-400">Precio en USD</span>
+                            {qty === 0 ? (
+                              <button onClick={() => addToCart(product)} className="flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-xs font-extrabold text-white shadow-md shadow-blue-600/20 transition hover:bg-blue-700 active:scale-95"><span className="text-base leading-none">+</span> Agregar</button>
+                            ) : (
+                              <div className="flex items-center gap-3 rounded-xl border border-blue-100 bg-blue-50 p-1">
+                                <button onClick={() => updateQuantity(product.id, -1)} className="flex h-7 w-7 items-center justify-center rounded-lg bg-white text-sm font-black text-blue-700 shadow-sm hover:bg-blue-100" aria-label="Disminuir cantidad">−</button>
+                                <span className="w-4 text-center text-xs font-black text-blue-800">{qty}</span>
+                                <button onClick={() => updateQuantity(product.id, 1)} className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-600 text-sm font-black text-white shadow-sm hover:bg-blue-700" aria-label="Aumentar cantidad">+</button>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </article>
+                    );
+                  })}
+                </div>
+              </div>
+            ))
+          )}
+        </section>
+      </main>
+
+      {totalItems === 0 && (
+        <nav className="fixed bottom-0 left-0 right-0 z-40 grid grid-cols-4 border-t border-slate-200 bg-white/95 px-2 py-2 shadow-[0_-10px_30px_rgba(15,23,42,0.08)] backdrop-blur-xl lg:hidden">
+          <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="flex flex-col items-center gap-1 py-1 text-[9px] font-bold text-blue-700"><span className="text-lg">⌂</span>Inicio</button>
+          <button onClick={() => document.getElementById('catalogo')?.scrollIntoView({ behavior: 'smooth' })} className="flex flex-col items-center gap-1 py-1 text-[9px] font-bold text-slate-500"><span className="text-lg">▦</span>Tienda</button>
+          <button onClick={() => document.getElementById('categorias')?.scrollIntoView({ behavior: 'smooth' })} className="flex flex-col items-center gap-1 py-1 text-[9px] font-bold text-slate-500"><span className="text-lg">◈</span>Categorías</button>
+          <button onClick={() => setIsCartOpen(true)} className="flex flex-col items-center gap-1 py-1 text-[9px] font-bold text-slate-500"><span className="text-lg">🛒</span>Carrito</button>
+        </nav>
+      )}
+
+      {totalItems > 0 && (
+        <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-slate-200 bg-white/95 p-3 shadow-[0_-12px_40px_rgba(15,23,42,0.10)] backdrop-blur-xl sm:p-4">
+          <div className="mx-auto flex max-w-3xl items-center justify-between gap-3">
+            <div className="flex min-w-0 items-center gap-3">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-blue-600 text-sm font-black text-white shadow-lg shadow-blue-600/25">{totalItems}</div>
+              <div className="min-w-0"><p className="text-[9px] font-black uppercase tracking-wider text-slate-400">Total de tu compra</p><p className="truncate text-base font-black text-slate-950">${totalPrice} <span className="text-[11px] font-semibold text-slate-500">· Bs. {totalBs}</span></p></div>
+            </div>
+            <button onClick={() => setIsCartOpen(true)} className="shrink-0 rounded-xl bg-blue-600 px-5 py-3 text-xs font-extrabold text-white shadow-lg shadow-blue-600/20 transition hover:bg-blue-700 active:scale-95">Ver carrito <span className="ml-1">→</span></button>
+          </div>
+        </div>
+      )}
+
+      {isCartOpen && (
+        <div className="fixed inset-0 z-50 flex justify-end bg-slate-950/60 backdrop-blur-sm" onClick={(e) => { if (e.target === e.currentTarget) setIsCartOpen(false); }}>
+          <aside className="flex h-full w-full max-w-lg flex-col overflow-y-auto border-l border-slate-200 bg-white shadow-2xl">
+            <div className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-100 bg-white/95 px-5 py-4 backdrop-blur-xl">
+              <div><p className="text-[10px] font-black uppercase tracking-[0.18em] text-blue-600">Winnova Electronic</p><h2 className="mt-0.5 text-lg font-black text-slate-950">Tu carrito</h2></div>
+              <button onClick={() => setIsCartOpen(false)} className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100 text-slate-500 transition hover:bg-slate-200 hover:text-slate-900" aria-label="Cerrar carrito">✕</button>
+            </div>
+            <div className="flex-1 space-y-5 p-5">
+              {cart.length === 0 ? (
+                <div className="py-16 text-center"><div className="mx-auto flex h-16 w-16 items-center justify-center rounded-3xl bg-blue-50 text-3xl">🛒</div><p className="mt-4 font-bold text-slate-800">Tu carrito está vacío</p><p className="mt-1 text-xs text-slate-500">Agrega productos del catálogo para continuar.</p><button onClick={() => setIsCartOpen(false)} className="mt-4 rounded-xl bg-blue-600 px-4 py-2.5 text-xs font-bold text-white">Explorar productos</button></div>
+              ) : (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between"><h3 className="text-xs font-black uppercase tracking-wider text-slate-700">Productos seleccionados</h3><span className="text-[10px] font-bold text-slate-400">{totalItems} unidades</span></div>
+                  {cart.map((item) => (
+                    <div key={item.id} className="flex items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-3">
+                      <div className="min-w-0 flex-1"><p className="line-clamp-2 text-xs font-extrabold text-slate-900">{item.name}</p><p className="mt-1 text-[11px] font-bold text-blue-700">${item.price.toFixed(2)} c/u</p></div>
+                      <div className="flex shrink-0 items-center gap-2 rounded-xl border border-slate-200 bg-white p-1"><button onClick={() => updateQuantity(item.id, -1)} className="h-7 w-7 rounded-lg bg-slate-100 text-sm font-black text-slate-700 hover:bg-slate-200">−</button><span className="w-4 text-center text-xs font-black">{item.quantity}</span><button onClick={() => updateQuantity(item.id, 1)} className="h-7 w-7 rounded-lg bg-blue-600 text-sm font-black text-white hover:bg-blue-700">+</button></div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {cart.length > 0 && <>
+                <div className="h-px bg-slate-100" />
+                <section className="space-y-3">
+                  <h3 className="text-xs font-black uppercase tracking-wider text-slate-700">Datos de contacto</h3>
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    <label className="space-y-1.5"><span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Nombre</span><input type="text" placeholder="Tu nombre y apellido" value={customerName} onChange={(e) => setCustomerName(e.target.value)} className={inputClass} /></label>
+                    <label className="space-y-1.5"><span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Teléfono</span><input type="text" placeholder="0412-0000000" value={customerPhone} onChange={(e) => setCustomerPhone(e.target.value)} className={inputClass} /></label>
+                  </div>
+                </section>
+                <section className="space-y-3">
+                  <label className="block space-y-1.5"><span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">¿Cómo deseas recibir tu pedido?</span><select value={orderType} onChange={(e) => setOrderType(e.target.value)} required className={selectClass}><option value="" disabled>Selecciona una modalidad</option><option value="Delivery">🛵 Delivery a domicilio</option><option value="Pickup">🏃 Retirar en local (Pickup)</option><option value="Local / Mesa">🏬 Compra en local / Mesa</option></select></label>
+                  {!orderType && <p className="text-[10px] font-semibold text-amber-600">Selecciona una modalidad para calcular el total.</p>}
+                  {orderType === 'Delivery' && <div className="space-y-3 rounded-2xl border border-blue-100 bg-blue-50/60 p-3"><label className="block space-y-1.5"><span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Zona de delivery</span><select value={deliveryZone} onChange={(e) => setDeliveryZone(e.target.value)} className={selectClass}><option value="Guarenas">Guarenas ($2.00)</option><option value="Guatire">Guatire ($3.00)</option></select></label><label className="block space-y-1.5"><span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Dirección exacta</span><input type="text" placeholder="Urbanización, calle, casa o referencia..." value={deliveryAddress} onChange={(e) => setDeliveryAddress(e.target.value)} className={inputClass} /></label></div>}
+                  <label className="block space-y-1.5"><span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Método de pago</span><select value={paymentMethod} onChange={(e) => setPaymentMethod(e.target.value)} className={selectClass}><option value="Pago Móvil (Bs)">📱 Pago Móvil (Bolívares)</option><option value="Efectivo / Divisas">💵 Efectivo / Divisas ($)</option><option value="Zelle / Binance">🌐 Zelle / Binance</option></select></label>
+                </section>
+                <section className="space-y-2 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                  <div className="flex justify-between text-xs text-slate-500"><span>Subtotal productos</span><span className="font-bold text-slate-800">${subtotalPrice.toFixed(2)}</span></div>
+                  {orderType === 'Delivery' && <div className="flex justify-between text-xs text-slate-500"><span>Delivery ({deliveryZone})</span><span className="font-bold text-slate-800">${deliveryCost.toFixed(2)}</span></div>}
+                  <div className="my-2 h-px bg-slate-200" />
+                  <div className="flex justify-between text-sm font-black text-slate-950"><span>Total USD</span><span>${totalPrice}</span></div>
+                  <div className="flex justify-between text-xs font-bold text-blue-700"><span>Total en Bs. <span className="font-medium text-slate-400">(BCV {exchangeRate.toFixed(2)})</span></span><span>Bs. {totalBs}</span></div>
+                </section>
+                <button onClick={checkoutWhatsApp} disabled={isSubmitting || isLoadingExchangeRate || !orderType} className="w-full rounded-2xl bg-blue-600 px-4 py-4 text-sm font-black text-white shadow-lg shadow-blue-600/20 transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50">{isSubmitting ? 'Procesando pedido...' : isLoadingExchangeRate ? 'Actualizando tasa...' : !orderType ? 'Selecciona cómo recibir tu pedido' : 'Confirmar pedido por WhatsApp →'}</button>
+                <p className="text-center text-[10px] leading-relaxed text-slate-400">Al confirmar, registraremos tu pedido y abriremos WhatsApp para continuar la atención.</p>
+              </>}
+            </div>
+          </aside>
+        </div>
+      )}
+
+      <footer className="border-t border-slate-200 bg-white px-4 py-7 text-center lg:ml-64">
+        <div className="mx-auto flex max-w-7xl flex-col items-center gap-1">
+          <p className="text-xs font-black tracking-wide text-slate-800">WINNOVA <span className="text-blue-600">ELECTRONIC</span></p>
+          <p className="text-[10px] text-slate-400">Tecnología, confianza y atención para ti.</p>
+          <Link href="/login" className="mt-2 text-[10px] font-bold text-blue-600 hover:text-blue-800">Acceso al sistema POS</Link>
+        </div>
+      </footer>
+    </div>
+  );
+}
