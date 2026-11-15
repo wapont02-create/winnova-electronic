@@ -1,83 +1,68 @@
 import ClientMenu from '@/components/ClientMenu';
 import { Database } from '@sqlitecloud/drivers';
 
-// La tienda consulta el inventario real cada vez que se solicita la página.
+// Forzar que esta página sea dinámica y consulte la base de datos en tiempo real
 export const dynamic = 'force-dynamic';
 
-interface ProductRow {
-  id: number;
-  name: string;
-  description?: string | null;
-  price_usd?: number | string | null;
-  category?: string | null;
-  image_url?: string | null;
-}
-
-async function getProducts(): Promise<ProductRow[]> {
-  const connectionString =
-    process.env.DATABASE_URL || process.env.SQLITECLOUD_CONNECTION_STRING;
-
-  if (!connectionString) {
-    console.error('Falta DATABASE_URL o SQLITECLOUD_CONNECTION_STRING en Vercel.');
-    return [];
-  }
-
-  let db: Database | null = null;
-
+async function getProducts() {
   try {
-    db = new Database(connectionString);
-    const result: any = await db.sql(
-      'SELECT id, name, description, price_usd, category, image_url FROM products;'
-    );
+    const connectionString = process.env.DATABASE_URL || process.env.SQLITECLOUD_CONNECTION_STRING;
+    
+    if (!connectionString) {
+      console.error('Falta la cadena de conexión en las variables de entorno de Vercel');
+      return [];
+    }
 
-    if (Array.isArray(result)) return result as ProductRow[];
-    if (result && Array.isArray(result.rows)) return result.rows as ProductRow[];
-
+    const db = new Database(connectionString);
+    // Incluimos image_url en la consulta SQL
+    const result: any = await db.sql('SELECT id, name, description, price_usd, category, image_url FROM products;');
+    
+    if (Array.isArray(result)) return result;
+    if (result && Array.isArray(result.rows)) return result.rows;
     if (result && typeof result === 'object') {
-      const arrayValue = Object.values(result).find((value) => Array.isArray(value));
-      if (Array.isArray(arrayValue)) return arrayValue as ProductRow[];
+      const values = Object.values(result);
+      if (Array.isArray(values[0])) return values[0];
+      return values;
     }
 
     return [];
   } catch (error) {
-    console.error('Error al consultar los productos de SQLite Cloud:', error);
+    console.error('Error al conectar con SQLite Cloud:', error);
     return [];
   }
 }
 
-export default async function HomePage() {
+export default async function TakosushiMenuPage() {
   const products = await getProducts();
-  const categoriesMap: Record<string, Array<{
-    id: number;
-    name: string;
-    description: string;
-    price: number;
-    image: string;
-  }>> = {};
 
-  for (const product of products) {
-    if (!product?.name) continue;
-
-    const category = product.category?.trim() || 'General';
-    if (!categoriesMap[category]) categoriesMap[category] = [];
-
-    categoriesMap[category].push({
-      id: Number(product.id),
-      name: String(product.name),
-      description: product.description || '',
-      price: Number(product.price_usd) || 0,
-      image: product.image_url || '',
+  const categoriesMap: { [key: string]: any[] } = {};
+  
+  if (Array.isArray(products) && products.length > 0) {
+    products.forEach((prod: any) => {
+      if (!prod || !prod.name) return;
+      
+      const cat = prod.category || 'COMBOS Y ROLLS';
+      if (!categoriesMap[cat]) {
+        categoriesMap[cat] = [];
+      }
+      categoriesMap[cat].push({
+        id: prod.id || Math.random(),
+        name: prod.name,
+        description: prod.description || '',
+        price: prod.price_usd ? Number(prod.price_usd) : 0,
+        image: prod.image_url || '' // Pasamos la URL limpia de la imagen
+      });
     });
   }
 
-  const initialCategories = Object.entries(categoriesMap).map(([category, items]) => ({
-    category,
-    items,
+  const menuCategories = Object.keys(categoriesMap).map(cat => ({
+    category: cat,
+    items: categoriesMap[cat]
   }));
 
   return (
-    <main className="min-h-screen bg-[#F3F6FB] text-slate-900">
-      <ClientMenu initialCategories={initialCategories} />
+    <main className="min-h-screen bg-[#140005] text-white flex flex-col justify-between selection:bg-[#ff007f] selection:text-white pb-24">
+      <ClientMenu initialCategories={menuCategories} />
     </main>
   );
 }
