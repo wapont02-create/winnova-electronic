@@ -464,7 +464,7 @@ export default function ClientMenu({
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-7xl px-4 pb-32 pt-5 sm:px-6 lg:ml-64 lg:max-w-none">
+      <main className="mx-auto w-full max-w-7xl px-4 pb-36 pt-5 sm:px-6 lg:ml-64 lg:w-[calc(100%-16rem)] lg:max-w-none">
         <section className="relative isolate overflow-hidden rounded-[28px] bg-[#071A36] px-5 py-8 text-white shadow-xl sm:px-9 sm:py-10">
           <div className="absolute -right-20 -top-28 -z-10 h-80 w-80 rounded-full bg-blue-500/30 blur-3xl" />
           <div className="absolute -bottom-32 right-1/4 -z-10 h-72 w-72 rounded-full bg-cyan-400/20 blur-3xl" />
@@ -866,7 +866,7 @@ export default function ClientMenu({
         </div>
       )}
 
-      <footer className="border-t border-slate-200 bg-white px-4 py-7 text-center lg:ml-64">
+      <footer className="w-full border-t border-slate-200 bg-white px-4 py-7 text-center lg:ml-64 lg:w-[calc(100%-16rem)]">
         <p className="text-xs font-black text-slate-800">WINNOVA <span className="text-blue-600">ELECTRONIC</span></p>
         <p className="mt-1 text-[10px] text-slate-400">Tecnología, confianza y atención para ti.</p>
         <Link href="/login" className="mt-2 inline-block text-[10px] font-bold text-blue-600">Acceso al sistema POS</Link>
