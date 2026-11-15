@@ -120,33 +120,56 @@ function POSCustomerSelector({
   const [results, setResults] = useState<any[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
   const [isAddingNew, setIsAddingNew] = useState(false);
-
   const [newName, setNewName] = useState('');
   const [newDoc, setNewDoc] = useState('');
   const [newPhone, setNewPhone] = useState('');
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    if (query.length > 1) {
-      fetch(
-        `/api/customers?q=${encodeURIComponent(query)}`
-      )
-        .then(res => res.json())
-        .then(data => {
-          if (Array.isArray(data)) {
-            setResults(data);
-            setShowDropdown(true);
-          }
-        })
-        .catch(err =>
-          console.error(
-            'Error buscando clientes:',
-            err
-          )
+    let cancelled = false;
+
+    const searchCustomers = async () => {
+      if (query.trim().length < 2) {
+        setResults([]);
+        setShowDropdown(false);
+        return;
+      }
+
+      try {
+        const res = await fetch(
+          `/api/customers?q=${encodeURIComponent(query.trim())}`,
+          { cache: 'no-store' }
         );
-    } else {
-      setResults([]);
-      setShowDropdown(false);
-    }
+
+        const data = await readJson(res);
+
+        if (!res.ok) {
+          throw new Error(data.error || 'No se pudieron buscar los clientes.');
+        }
+
+        const customers = Array.isArray(data)
+          ? data
+          : Array.isArray(data.customers)
+            ? data.customers
+            : [];
+
+        if (!cancelled) {
+          setResults(customers);
+          setShowDropdown(true);
+        }
+      } catch (error) {
+        console.error('Error buscando clientes:', error);
+        if (!cancelled) {
+          setResults([]);
+        }
+      }
+    };
+
+    searchCustomers();
+
+    return () => {
+      cancelled = true;
+    };
   }, [query]);
 
   const handleRegisterQuickCustomer = async (
@@ -154,53 +177,58 @@ function POSCustomerSelector({
   ) => {
     e.preventDefault();
 
-    if (!newName.trim()) return;
+    const customerName = newName.trim();
+
+    if (!customerName || saving) return;
+
+    setSaving(true);
 
     try {
       const res = await fetch('/api/customers', {
         method: 'POST',
         headers: {
-          'Content-Type':
-            'application/json'
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          name: newName,
-          rif_ci: newDoc,
-          phone: newPhone
+          name: customerName,
+          rif_ci: newDoc.trim(),
+          phone: newPhone.trim()
         })
       });
 
       const data = await readJson(res);
 
-      if (data.success) {
-        onSelectCustomer({
-          name: newName,
-          document:
-            newDoc || 'V-00000000',
-          phone: newPhone || 'N/A'
-        });
-
-        setIsAddingNew(false);
-        setQuery(newName);
-        setNewName('');
-        setNewDoc('');
-        setNewPhone('');
-
-        alert(
-          '¡Cliente registrado y seleccionado!'
-        );
-      } else {
-        alert(
-          'Error: ' +
-            (data.error ||
-              'No se pudo registrar el cliente.')
+      if (!res.ok || data.success === false) {
+        throw new Error(
+          data.error || 'No se pudo registrar el cliente.'
         );
       }
-    } catch (err) {
-      console.error(err);
-      alert(
-        'Error de red al registrar el cliente.'
-      );
+
+      const customer = data.customer || data.data || {};
+
+      onSelectCustomer({
+        name: customer.name || customerName,
+        document:
+          customer.rif_ci ||
+          customer.document ||
+          newDoc.trim() ||
+          'N/A',
+        phone: customer.phone || newPhone.trim() || 'N/A'
+      });
+
+      setQuery(customer.name || customerName);
+      setIsAddingNew(false);
+      setNewName('');
+      setNewDoc('');
+      setNewPhone('');
+      setShowDropdown(false);
+
+      alert('¡Cliente registrado y seleccionado!');
+    } catch (error: any) {
+      console.error('Error registrando cliente:', error);
+      alert(error.message || 'Error al registrar el cliente.');
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -219,63 +247,53 @@ function POSCustomerSelector({
             className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs text-slate-800 focus:outline-none focus:border-blue-500 transition shadow-2xs"
           />
 
-          {showDropdown &&
-            results.length > 0 && (
-              <ul className="absolute z-20 w-full bg-white border border-slate-200 mt-1 shadow-xl max-h-40 overflow-y-auto rounded-xl text-xs">
-                {results.map((c: any) => (
+          {showDropdown && (
+            <ul className="absolute z-20 w-full bg-white border border-slate-200 mt-1 shadow-xl max-h-40 overflow-y-auto rounded-xl text-xs">
+              {results.length === 0 ? (
+                <li className="p-3 text-slate-500 text-center">
+                  No se encontraron clientes.
+                </li>
+              ) : (
+                results.map((c: any) => (
                   <li
                     key={c.id}
                     className="p-2.5 hover:bg-blue-50 cursor-pointer border-b border-slate-100 flex justify-between items-center transition"
                     onClick={() => {
                       onSelectCustomer({
-                        name: c.name,
-                        document:
-                          c.rif_ci ||
-                          'N/A',
-                        phone:
-                          c.phone ||
-                          'N/A'
+                        name: c.name || '',
+                        document: c.rif_ci || c.document || 'N/A',
+                        phone: c.phone || 'N/A'
                       });
 
-                      setQuery(c.name);
-                      setShowDropdown(
-                        false
-                      );
+                      setQuery(c.name || '');
+                      setShowDropdown(false);
                     }}
                   >
                     <span className="font-bold text-slate-800">
                       {c.name}
                     </span>
-
                     <span className="text-slate-500">
-                      {c.rif_ci}
+                      {c.rif_ci || c.document || ''}
                     </span>
                   </li>
-                ))}
-              </ul>
-            )}
+                ))
+              )}
+            </ul>
+          )}
         </div>
 
         <button
           type="button"
-          onClick={() =>
-            setIsAddingNew(
-              !isAddingNew
-            )
-          }
+          onClick={() => setIsAddingNew(!isAddingNew)}
           className="bg-blue-50 text-blue-600 hover:bg-blue-100 border border-blue-200 px-3 py-2.5 rounded-xl text-xs font-bold transition shadow-2xs"
         >
-          {isAddingNew
-            ? 'Cancelar'
-            : '+ Nuevo'}
+          {isAddingNew ? 'Cancelar' : '+ Nuevo'}
         </button>
       </div>
 
       {isAddingNew && (
         <form
-          onSubmit={
-            handleRegisterQuickCustomer
-          }
+          onSubmit={handleRegisterQuickCustomer}
           className="bg-blue-50/70 p-3.5 rounded-2xl border border-blue-200 space-y-2.5 animate-fadeIn"
         >
           <div className="text-[11px] font-extrabold text-blue-900">
@@ -287,11 +305,7 @@ function POSCustomerSelector({
             placeholder="Nombre y Apellido *"
             required
             value={newName}
-            onChange={e =>
-              setNewName(
-                e.target.value
-              )
-            }
+            onChange={e => setNewName(e.target.value)}
             className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs shadow-2xs"
           />
 
@@ -300,11 +314,7 @@ function POSCustomerSelector({
               type="text"
               placeholder="Cédula / RIF"
               value={newDoc}
-              onChange={e =>
-                setNewDoc(
-                  e.target.value
-                )
-              }
+              onChange={e => setNewDoc(e.target.value)}
               className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs shadow-2xs"
             />
 
@@ -312,20 +322,17 @@ function POSCustomerSelector({
               type="text"
               placeholder="Teléfono"
               value={newPhone}
-              onChange={e =>
-                setNewPhone(
-                  e.target.value
-                )
-              }
+              onChange={e => setNewPhone(e.target.value)}
               className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs shadow-2xs"
             />
           </div>
 
           <button
             type="submit"
-            className="w-full bg-blue-600 hover:bg-blue-500 text-white rounded-xl py-2 text-xs font-bold shadow-sm transition"
+            disabled={saving}
+            className="w-full bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white rounded-xl py-2 text-xs font-bold shadow-sm transition"
           >
-            Guardar y Seleccionar ⚡
+            {saving ? 'Guardando...' : 'Guardar y Seleccionar ⚡'}
           </button>
         </form>
       )}
@@ -338,24 +345,45 @@ function POSCustomerSelector({
 ============================================================ */
 
 function CustomersDirectoryModule() {
-  const [customers, setCustomers] =
-    useState<any[]>([]);
+  const [customers, setCustomers] = useState<any[]>([]);
   const [name, setName] = useState('');
   const [rifCi, setRifCi] = useState('');
   const [phone, setPhone] = useState('');
   const [address, setAddress] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+
+  const loadCustomers = async () => {
+    try {
+      setLoading(true);
+
+      const res = await fetch('/api/customers', {
+        cache: 'no-store'
+      });
+
+      const data = await readJson(res);
+
+      if (!res.ok) {
+        throw new Error(data.error || 'No se pudieron cargar los clientes.');
+      }
+
+      const list = Array.isArray(data)
+        ? data
+        : Array.isArray(data.customers)
+          ? data.customers
+          : [];
+
+      setCustomers(list);
+    } catch (error) {
+      console.error('Error cargando clientes:', error);
+      setCustomers([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    fetch('/api/customers')
-      .then(res => res.json())
-      .then(data => {
-        if (Array.isArray(data)) {
-          setCustomers(data);
-        }
-      })
-      .catch(err =>
-        console.error(err)
-      );
+    loadCustomers();
   }, []);
 
   const handleSaveCustomer = async (
@@ -363,55 +391,45 @@ function CustomersDirectoryModule() {
   ) => {
     e.preventDefault();
 
-    if (!name.trim()) return;
+    if (!name.trim() || saving) return;
+
+    setSaving(true);
 
     try {
-      const res = await fetch(
-        '/api/customers',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type':
-              'application/json'
-          },
-          body: JSON.stringify({
-            name,
-            rif_ci: rifCi,
-            phone,
-            address
-          })
-        }
-      );
+      const res = await fetch('/api/customers', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          name: name.trim(),
+          rif_ci: rifCi.trim(),
+          phone: phone.trim(),
+          address: address.trim()
+        })
+      });
 
       const data = await readJson(res);
 
-      if (data.success) {
-        alert(
-          '¡Cliente guardado con éxito!'
-        );
-
-        setName('');
-        setRifCi('');
-        setPhone('');
-        setAddress('');
-
-        const updated = await fetch(
-          '/api/customers'
-        ).then(r => r.json());
-
-        if (Array.isArray(updated)) {
-          setCustomers(updated);
-        }
-      } else {
-        alert(
-          'Error: ' +
-            (data.error ||
-              'No se pudo guardar.')
+      if (!res.ok || data.success === false) {
+        throw new Error(
+          data.error || 'No se pudo guardar el cliente.'
         );
       }
-    } catch (err) {
-      console.error(err);
-      alert('Error de red.');
+
+      setName('');
+      setRifCi('');
+      setPhone('');
+      setAddress('');
+
+      await loadCustomers();
+
+      alert('¡Cliente guardado con éxito!');
+    } catch (error: any) {
+      console.error('Error guardando cliente:', error);
+      alert(error.message || 'Error al guardar el cliente.');
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -424,8 +442,7 @@ function CustomersDirectoryModule() {
           </h3>
 
           <p className="text-xs text-slate-500">
-            Base de datos de compradores para
-            créditos y facturación rápida.
+            Base de datos de compradores para créditos y facturación rápida.
           </p>
         </div>
 
@@ -443,9 +460,7 @@ function CustomersDirectoryModule() {
           placeholder="Nombre *"
           required
           value={name}
-          onChange={e =>
-            setName(e.target.value)
-          }
+          onChange={e => setName(e.target.value)}
           className="bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs shadow-2xs"
         />
 
@@ -453,9 +468,7 @@ function CustomersDirectoryModule() {
           type="text"
           placeholder="Cédula / RIF"
           value={rifCi}
-          onChange={e =>
-            setRifCi(e.target.value)
-          }
+          onChange={e => setRifCi(e.target.value)}
           className="bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs shadow-2xs"
         />
 
@@ -463,9 +476,7 @@ function CustomersDirectoryModule() {
           type="text"
           placeholder="Teléfono"
           value={phone}
-          onChange={e =>
-            setPhone(e.target.value)
-          }
+          onChange={e => setPhone(e.target.value)}
           className="bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs shadow-2xs"
         />
 
@@ -473,17 +484,16 @@ function CustomersDirectoryModule() {
           type="text"
           placeholder="Dirección"
           value={address}
-          onChange={e =>
-            setAddress(e.target.value)
-          }
+          onChange={e => setAddress(e.target.value)}
           className="bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs shadow-2xs"
         />
 
         <button
           type="submit"
-          className="bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 rounded-xl text-xs shadow-sm transition"
+          disabled={saving}
+          className="bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-bold py-2 rounded-xl text-xs shadow-sm transition"
         >
-          Registrar 💾
+          {saving ? 'Guardando...' : 'Registrar 💾'}
         </button>
       </form>
 
@@ -491,45 +501,38 @@ function CustomersDirectoryModule() {
         <table className="w-full text-left border-collapse text-xs">
           <thead>
             <tr className="border-b border-slate-200 bg-slate-50/80 text-slate-600 uppercase font-bold text-[10px]">
-              <th className="p-3">
-                Cliente
-              </th>
-              <th className="p-3">
-                Cédula / RIF
-              </th>
-              <th className="p-3">
-                Teléfono
-              </th>
-              <th className="p-3">
-                Dirección
-              </th>
+              <th className="p-3">Cliente</th>
+              <th className="p-3">Cédula / RIF</th>
+              <th className="p-3">Teléfono</th>
+              <th className="p-3">Dirección</th>
             </tr>
           </thead>
 
           <tbody className="divide-y divide-slate-100">
-            {customers.length === 0 && (
+            {loading ? (
               <tr>
-                <td
-                  colSpan={4}
-                  className="text-center py-8 text-slate-400"
-                >
+                <td colSpan={4} className="text-center py-8 text-slate-400">
+                  Cargando clientes...
+                </td>
+              </tr>
+            ) : customers.length === 0 ? (
+              <tr>
+                <td colSpan={4} className="text-center py-8 text-slate-400">
                   No hay clientes registrados.
                 </td>
               </tr>
-            )}
-
-            {customers.map(
-              (c, idx) => (
+            ) : (
+              customers.map((c: any) => (
                 <tr
-                  key={idx}
+                  key={c.id}
                   className="hover:bg-slate-50/60 transition"
                 >
                   <td className="p-3 font-bold text-slate-800">
-                    {c.name}
+                    {c.name || 'Sin nombre'}
                   </td>
 
                   <td className="p-3 text-slate-600">
-                    {c.rif_ci || 'N/A'}
+                    {c.rif_ci || c.document || 'N/A'}
                   </td>
 
                   <td className="p-3 text-slate-600">
@@ -540,7 +543,7 @@ function CustomersDirectoryModule() {
                     {c.address || 'N/A'}
                   </td>
                 </tr>
-              )
+              ))
             )}
           </tbody>
         </table>
@@ -5771,7 +5774,7 @@ export default function DashboardPOS() {
                 <div className="mt-2 grid grid-cols-3 gap-2 text-xs"><span>− Vuelto entregado en Bs</span><span className="text-right">—</span><span className="text-right">− Bs. {Number(cashClosingReport.cashOutflowBs || 0).toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></div>
                 <div className="mt-2 grid grid-cols-3 gap-2 border-t border-slate-300 pt-2 text-xs font-black"><span>Esperado en caja</span><span className="text-right">${Number(cashClosingReport.expectedUSD || 0).toFixed(2)}</span><span className="text-right">Bs. {Number(cashClosingReport.expectedBs || 0).toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></div>
                 <div className="mt-2 grid grid-cols-3 gap-2 text-xs"><span>Contado por cajero</span><span className="text-right">${Number(cashClosingReport.countedUSD || 0).toFixed(2)}</span><span className="text-right">Bs. {Number(cashClosingReport.countedBs || 0).toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></div>
-                <div className="mt-2 grid grid-cols-3 gap-2 border-t border-slate-300 pt-2 text-sm font-black"><span>Diferencia</span><span className={`text-right ${Number(cashClosingReport.differenceUSD) < -0.009 ? 'text-red-700' : Number(cashClosingReport.differenceUSD) > 0.009 ? 'text-emerald-700' : ''}`}>{Number(cashClosingReport.differenceUSD) > 0 ? '+' : ''}${Number(cashClosingReport.differenceUSD || 0).toFixed(2)}</span><span className={`text-right ${Number(cashClosingReport.differenceBs) < -0.009 ? 'text-red-700' : Number(cashClosingReport.differenceBs) > 0.009 ? 'text-emerald-700' : ''}`}>{Number(cashClosingReport.differenceBs) > 0 ? '+' : ''}Bs. {Number(cashClosingReport.differenceBs || 0).toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></div>
+                <div className="mt-2 grid grid-cols-3 gap-2 border-t border-slate-300 pt-2 text-sm font-black"><span>Diferencia</span><span className={`text-right ${Number(cashClosingReport.differenceUSD) < -0.009 ? 'text-red-700' : Number(cashClosingReport.differenceUSD) > 0.009 ? 'text-emerald-700' : ''}`}>{Number(cashClosingReport.differenceUSD) > 0 ? '+' : ''}${Number(cashClosingReport.differenceUSD || 0).toFixed(2)}</span><span className={`text-right ${Number(cashClosingReport.differenceBs) < -0.009 ? 'text-red-700' : Number(cashClosingReport.differenceBs) > 0.009 ? 'text-emerald-700' : ''}`}>{Number(cashClosingReport.differenceBs) > 0 ? '+' : ''}Bs. {Number(cashClosingReport.differenceBs) > 0 ? '+' : ''}Bs. {Number(cashClosingReport.differenceBs || 0).toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></div>
                 <p className="mt-3 text-center text-xs font-bold">{Math.abs(Number(cashClosingReport.differenceUSD || 0)) < 0.01 && Math.abs(Number(cashClosingReport.differenceBs || 0)) < 0.01 ? 'CAJA CUADRADA' : 'REVISAR DIFERENCIA DE CAJA'}</p>
               </section>
 
