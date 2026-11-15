@@ -272,7 +272,7 @@ export default function ClientMenu({
 
     const phone = '584129269308';
 
-    let message = `🍣 *NUEVO PEDIDO - TAKOSUSHI* 🍣\n\n`;
+    let message = `📱 *NUEVO PEDIDO - TECH STORE* 📱\n\n`;
 
     message += `👤 *Cliente:* ${customerName}\n`;
     message += `📞 *Teléfono:* ${customerPhone}\n`;
@@ -316,24 +316,24 @@ export default function ClientMenu({
   };
 
   return (
-    <div className="flex flex-col min-h-screen justify-between w-full bg-[#0B0E14] text-slate-100 font-sans selection:bg-[#FF0055] selection:text-white">
+    <div className="flex flex-col min-h-screen justify-between w-full bg-[#080D0C] text-slate-100 font-sans selection:bg-[#007F66] selection:text-white">
 
       {/* NAVBAR SUPERIOR */}
-      <header className="sticky top-0 z-40 bg-[#0F131C]/90 backdrop-blur-xl border-b border-slate-800/80 shadow-lg">
+      <header className="sticky top-0 z-40 bg-[#101916]/90 backdrop-blur-xl border-b border-[#243A32]/80 shadow-lg">
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between gap-3">
 
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-[#FF0055] to-rose-400 flex items-center justify-center text-white shadow-lg shadow-[#FF0055]/30 font-black text-xl">
-              🍣
+            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-[#007F66] to-emerald-400 flex items-center justify-center text-white shadow-lg shadow-[#007F66]/30 font-black text-xl">
+              📱
             </div>
 
             <div>
               <div className="flex items-center gap-2">
                 <span className="font-extrabold tracking-tight text-white text-base">
-                  TAKOSUSHI
+                  TECH STORE
                 </span>
 
-                <span className="bg-[#FF0055]/15 text-[#FF0055] text-[10px] font-bold px-2 py-0.5 rounded-full border border-[#FF0055]/30 hidden xs:inline-block">
+                <span className="bg-[#007F66]/15 text-[#007F66] text-[10px] font-bold px-2 py-0.5 rounded-full border border-[#007F66]/30 hidden xs:inline-block">
                   En vivo
                 </span>
               </div>
@@ -351,7 +351,7 @@ export default function ClientMenu({
           <div className="flex items-center gap-2">
             <Link
               href="/login"
-              className="text-xs font-bold text-slate-300 hover:text-white bg-slate-800/60 hover:bg-slate-800 border border-slate-700/60 px-3 py-2 rounded-xl transition flex items-center gap-1.5"
+              className="text-xs font-bold text-slate-300 hover:text-white bg-slate-800/60 hover:bg-slate-800 border border-[#2D493E]/60 px-3 py-2 rounded-xl transition flex items-center gap-1.5"
             >
               <span>🔐</span>
               <span className="hidden sm:inline">Acceso POS</span>
@@ -359,13 +359,13 @@ export default function ClientMenu({
 
             <button
               onClick={() => setIsCartOpen(true)}
-              className="relative bg-[#FF0055] hover:bg-rose-600 text-white px-4 py-2 rounded-xl font-bold text-xs flex items-center gap-2 shadow-lg shadow-[#FF0055]/25 transition active:scale-95"
+              className="relative bg-[#007F66] hover:bg-emerald-700 text-white px-4 py-2 rounded-xl font-bold text-xs flex items-center gap-2 shadow-lg shadow-[#007F66]/25 transition active:scale-95"
             >
               <span>🛒</span>
               <span className="hidden xs:inline">Mi Pedido</span>
 
               {totalItems > 0 && (
-                <span className="bg-white text-[#FF0055] font-black text-[11px] px-2 py-0.5 rounded-full shadow">
+                <span className="bg-white text-[#007F66] font-black text-[11px] px-2 py-0.5 rounded-full shadow">
                   {totalItems}
                 </span>
               )}
@@ -375,30 +375,30 @@ export default function ClientMenu({
       </header>
 
       {/* HERO */}
-      <section className="bg-gradient-to-b from-[#131824] to-[#0B0E14] border-b border-slate-800/60 pt-6 pb-6 px-4">
+      <section className="bg-gradient-to-b from-[#131824] to-[#0B0E14] border-b border-[#243A32]/60 pt-6 pb-6 px-4">
         <div className="max-w-6xl mx-auto">
-          <div className="bg-gradient-to-r from-rose-950/40 via-slate-900 to-slate-900 border border-rose-900/30 rounded-3xl p-5 sm:p-7 relative overflow-hidden shadow-2xl flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="bg-gradient-to-r from-rose-950/40 via-slate-900 to-slate-900 border border-emerald-900/30 rounded-3xl p-5 sm:p-7 relative overflow-hidden shadow-2xl flex flex-col md:flex-row items-center justify-between gap-6">
 
             <div className="space-y-2 text-center md:text-left z-10">
-              <div className="inline-flex items-center gap-2 bg-[#FF0055]/10 text-[#FF0055] text-xs font-bold px-3 py-1 rounded-full border border-[#FF0055]/20">
-                ⭐ 4.9 (500+ Pedidos en Guarenas & Guatire)
+              <div className="inline-flex items-center gap-2 bg-[#007F66]/10 text-[#007F66] text-xs font-bold px-3 py-1 rounded-full border border-[#007F66]/20">
+                ⚡ Tecnología y accesorios en un solo lugar
               </div>
 
               <h1 className="text-2xl sm:text-4xl font-black tracking-tight text-white uppercase">
-                Los mejores Rolls y Combos 🍣
+                Tecnología para tu día a día 📱
               </h1>
 
               <p className="text-slate-400 text-xs sm:text-sm max-w-md">
-                Pide rápido para Delivery o ven a retirar. Calidad premium garantizada.
+                Descubre accesorios, equipos y soluciones tecnológicas para tu día a día.
               </p>
 
               <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 pt-2 text-xs font-semibold text-slate-300">
-                <span className="flex items-center gap-1.5 bg-slate-800/80 px-3 py-1.5 rounded-xl border border-slate-700/50">
-                  🛵 Delivery 20-35 min
+                <span className="flex items-center gap-1.5 bg-slate-800/80 px-3 py-1.5 rounded-xl border border-[#2D493E]/50">
+                  🚚 Delivery disponible
                 </span>
 
-                <span className="flex items-center gap-1.5 bg-slate-800/80 px-3 py-1.5 rounded-xl border border-slate-700/50">
-                  💵 Efectivo / Pago Móvil / Zelle
+                <span className="flex items-center gap-1.5 bg-slate-800/80 px-3 py-1.5 rounded-xl border border-[#2D493E]/50">
+                  💳 Diferentes métodos de pago
                 </span>
               </div>
             </div>
@@ -412,10 +412,10 @@ export default function ClientMenu({
 
                 <input
                   type="text"
-                  placeholder="Buscar sushi, combos..."
+                  placeholder="Buscar productos, marcas y accesorios..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full bg-slate-950/90 border border-slate-700/80 rounded-2xl pl-10 pr-4 py-3 text-xs sm:text-sm text-white placeholder-slate-400 focus:outline-none focus:border-[#FF0055] focus:ring-2 focus:ring-[#FF0055]/20 transition shadow-inner"
+                  className="w-full bg-[#080D0C]/90 border border-[#2D493E]/80 rounded-2xl pl-10 pr-4 py-3 text-xs sm:text-sm text-white placeholder-slate-400 focus:outline-none focus:border-[#007F66] focus:ring-2 focus:ring-[#007F66]/20 transition shadow-inner"
                 />
 
                 {searchQuery && (
@@ -434,17 +434,17 @@ export default function ClientMenu({
       </section>
 
       {/* CATEGORÍAS */}
-      <div className="sticky top-16 z-30 bg-[#0B0E14]/95 backdrop-blur-lg border-b border-slate-800/80 py-3 px-4">
+      <div className="sticky top-16 z-30 bg-[#080D0C]/95 backdrop-blur-lg border-b border-[#243A32]/80 py-3 px-4">
         <div className="max-w-6xl mx-auto flex gap-2 overflow-x-auto scrollbar-none">
           <button
             onClick={() => setSelectedCategory('Todos')}
             className={`px-4 py-2 rounded-2xl text-xs font-bold whitespace-nowrap transition-all shadow-sm ${
               selectedCategory === 'Todos'
-                ? 'bg-[#FF0055] text-white shadow-lg shadow-[#FF0055]/30 scale-105'
-                : 'bg-slate-900 text-slate-400 border border-slate-800 hover:bg-slate-800 hover:text-white'
+                ? 'bg-[#007F66] text-white shadow-lg shadow-[#007F66]/30 scale-105'
+                : 'bg-[#111B17] text-slate-400 border border-[#243A32] hover:bg-slate-800 hover:text-white'
             }`}
           >
-            🔥 Menú Completo
+            ▦ Todos los productos
           </button>
 
           {initialCategories.map((cat, idx) => (
@@ -453,8 +453,8 @@ export default function ClientMenu({
               onClick={() => setSelectedCategory(cat.category)}
               className={`px-4 py-2 rounded-2xl text-xs font-bold whitespace-nowrap transition-all shadow-sm ${
                 selectedCategory === cat.category
-                  ? 'bg-[#FF0055] text-white shadow-lg shadow-[#FF0055]/30 scale-105'
-                  : 'bg-slate-900 text-slate-400 border border-slate-800 hover:bg-slate-800 hover:text-white'
+                  ? 'bg-[#007F66] text-white shadow-lg shadow-[#007F66]/30 scale-105'
+                  : 'bg-[#111B17] text-slate-400 border border-[#243A32] hover:bg-slate-800 hover:text-white'
               }`}
             >
               {cat.category}
@@ -467,9 +467,9 @@ export default function ClientMenu({
       <main className="max-w-6xl mx-auto px-4 py-8 w-full flex-1">
         {filteredCategories.length === 0 ? (
           <div className="text-center py-20 text-slate-500">
-            <p className="text-4xl mb-3">🍣</p>
+            <p className="text-4xl mb-3">📱</p>
             <p className="text-sm font-semibold">
-              No encontramos platos que coincidan con tu búsqueda.
+              No encontramos productos que coincidan con tu búsqueda.
             </p>
           </div>
         ) : (
@@ -477,7 +477,7 @@ export default function ClientMenu({
             <div key={idx} className="mb-12">
               <div className="flex items-center gap-3 mb-6">
                 <h2 className="text-white font-black text-lg sm:text-xl tracking-wider uppercase flex items-center gap-2">
-                  <span className="w-2.5 h-2.5 rounded-full bg-[#FF0055]"></span>
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#007F66]"></span>
                   {cat.category}
                 </h2>
 
@@ -496,9 +496,9 @@ export default function ClientMenu({
                   return (
                     <div
                       key={product.id}
-                      className="group bg-[#0F131C] border border-slate-800/80 hover:border-slate-700/80 rounded-3xl overflow-hidden flex flex-col justify-between shadow-lg hover:shadow-2xl hover:shadow-[#FF0055]/10 transition-all duration-300"
+                      className="group bg-[#101916] border border-[#243A32]/80 hover:border-[#2D493E]/80 rounded-3xl overflow-hidden flex flex-col justify-between shadow-lg hover:shadow-2xl hover:shadow-[#007F66]/10 transition-all duration-300"
                     >
-                      <div className="w-full h-48 bg-slate-950 relative overflow-hidden">
+                      <div className="w-full h-48 bg-[#080D0C] relative overflow-hidden">
                         {imageUrl &&
                         imageUrl !== 'NULL' &&
                         imageUrl !== 'EMPTY_STRING' ? (
@@ -514,37 +514,37 @@ export default function ClientMenu({
 
                               if (parent) {
                                 parent.innerHTML = `
-                                  <div class="w-full h-full bg-slate-950 flex items-center justify-center text-slate-600 text-xs font-semibold tracking-widest uppercase">
-                                    📷 Takosushi
+                                  <div class="w-full h-full bg-[#080D0C] flex items-center justify-center text-slate-600 text-xs font-semibold tracking-widest uppercase">
+                                    📷 Tech Store
                                   </div>
                                 `;
                               }
                             }}
                           />
                         ) : (
-                          <div className="w-full h-full bg-slate-950 flex items-center justify-center text-slate-600 text-xs font-semibold tracking-widest uppercase">
-                            📷 Takosushi
+                          <div className="w-full h-full bg-[#080D0C] flex items-center justify-center text-slate-600 text-xs font-semibold tracking-widest uppercase">
+                            📷 Tech Store
                           </div>
                         )}
 
-                        <div className="absolute top-3 right-3 bg-[#0B0E14]/85 backdrop-blur-md px-3 py-1 rounded-xl text-amber-400 font-black text-sm shadow border border-slate-700/60">
+                        <div className="absolute top-3 right-3 bg-[#080D0C]/85 backdrop-blur-md px-3 py-1 rounded-xl text-emerald-300 font-black text-sm shadow border border-[#2D493E]/60">
                           ${product.price.toFixed(2)}
                         </div>
                       </div>
 
                       <div className="p-5 flex-1 flex flex-col justify-between gap-4">
                         <div>
-                          <h3 className="text-white font-bold text-base tracking-wide mb-1 group-hover:text-[#FF0055] transition">
+                          <h3 className="text-white font-bold text-base tracking-wide mb-1 group-hover:text-[#007F66] transition">
                             {product.name}
                           </h3>
 
                           <p className="text-slate-400 text-xs leading-relaxed line-clamp-2">
                             {product.description ||
-                              'Preparado al instante con ingredientes frescos de la más alta calidad.'}
+                              'Producto de tecnología seleccionado para ofrecer funcionalidad y calidad.'}
                           </p>
                         </div>
 
-                        <div className="pt-3 border-t border-slate-800/60 flex items-center justify-between">
+                        <div className="pt-3 border-t border-[#243A32]/60 flex items-center justify-between">
                           <span className="text-[11px] text-emerald-400 font-semibold bg-emerald-950/30 px-2 py-0.5 rounded-lg border border-emerald-900/40">
                             Disponible
                           </span>
@@ -552,12 +552,12 @@ export default function ClientMenu({
                           {qtyInCart === 0 ? (
                             <button
                               onClick={() => addToCart(product)}
-                              className="bg-[#FF0055] hover:bg-rose-600 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-md shadow-[#FF0055]/30 transition transform active:scale-95 flex items-center gap-1.5"
+                              className="bg-[#007F66] hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-md shadow-[#007F66]/30 transition transform active:scale-95 flex items-center gap-1.5"
                             >
                               <span>+</span> Agregar
                             </button>
                           ) : (
-                            <div className="flex items-center gap-2.5 bg-slate-950 px-3 py-1 rounded-xl border border-slate-800">
+                            <div className="flex items-center gap-2.5 bg-[#080D0C] px-3 py-1 rounded-xl border border-[#243A32]">
                               <button
                                 onClick={() =>
                                   updateQuantity(product.id, -1)
@@ -567,7 +567,7 @@ export default function ClientMenu({
                                 -
                               </button>
 
-                              <span className="font-bold text-xs w-4 text-center text-amber-400">
+                              <span className="font-bold text-xs w-4 text-center text-emerald-300">
                                 {qtyInCart}
                               </span>
 
@@ -575,7 +575,7 @@ export default function ClientMenu({
                                 onClick={() =>
                                   updateQuantity(product.id, 1)
                                 }
-                                className="w-6 h-6 rounded-lg bg-[#FF0055] text-white font-bold text-xs hover:bg-rose-600 flex items-center justify-center transition shadow"
+                                className="w-6 h-6 rounded-lg bg-[#007F66] text-white font-bold text-xs hover:bg-emerald-700 flex items-center justify-center transition shadow"
                               >
                                 +
                               </button>
@@ -594,10 +594,10 @@ export default function ClientMenu({
 
       {/* BARRA FLOTANTE DEL PEDIDO */}
       {totalItems > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 bg-[#0F131C]/95 border-t border-slate-800 p-4 backdrop-blur-2xl z-40 shadow-2xl animate-in slide-in-from-bottom duration-300">
+        <div className="fixed bottom-0 left-0 right-0 bg-[#101916]/95 border-t border-[#243A32] p-4 backdrop-blur-2xl z-40 shadow-2xl animate-in slide-in-from-bottom duration-300">
           <div className="max-w-3xl mx-auto flex justify-between items-center gap-4">
             <div className="flex items-center gap-3">
-              <div className="w-11 h-11 rounded-2xl bg-[#FF0055] text-white flex items-center justify-center font-black text-sm shadow-lg shadow-[#FF0055]/40">
+              <div className="w-11 h-11 rounded-2xl bg-[#007F66] text-white flex items-center justify-center font-black text-sm shadow-lg shadow-[#007F66]/40">
                 {totalItems}
               </div>
 
@@ -606,7 +606,7 @@ export default function ClientMenu({
                   Total del Pedido
                 </p>
 
-                <p className="text-base font-black text-amber-400">
+                <p className="text-base font-black text-emerald-300">
                   ${totalPrice}{' '}
                   <span className="text-xs font-semibold text-slate-400">
                     ({totalBs} Bs)
@@ -617,7 +617,7 @@ export default function ClientMenu({
 
             <button
               onClick={() => setIsCartOpen(true)}
-              className="bg-[#FF0055] hover:bg-rose-600 text-white px-6 py-3 rounded-2xl font-extrabold text-xs sm:text-sm shadow-xl shadow-[#FF0055]/40 transition transform hover:scale-105 active:scale-95 flex items-center gap-2"
+              className="bg-[#007F66] hover:bg-emerald-700 text-white px-6 py-3 rounded-2xl font-extrabold text-xs sm:text-sm shadow-xl shadow-[#007F66]/40 transition transform hover:scale-105 active:scale-95 flex items-center gap-2"
             >
               <span>Ver Pedido y Pagar</span>
               <span>➔</span>
@@ -629,17 +629,17 @@ export default function ClientMenu({
       {/* CHECKOUT */}
       {isCartOpen && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex justify-end animate-in fade-in duration-200">
-          <div className="bg-[#0F131C] w-full max-w-md h-full p-6 flex flex-col justify-between border-l border-slate-800 shadow-2xl overflow-y-auto">
+          <div className="bg-[#101916] w-full max-w-md h-full p-6 flex flex-col justify-between border-l border-[#243A32] shadow-2xl overflow-y-auto">
 
             <div>
-              <div className="flex justify-between items-center pb-4 border-b border-slate-800 mb-5">
+              <div className="flex justify-between items-center pb-4 border-b border-[#243A32] mb-5">
                 <h2 className="text-base font-black text-white uppercase tracking-wide flex items-center gap-2">
                   <span>🛒</span> Resumen de tu Pedido
                 </h2>
 
                 <button
                   onClick={() => setIsCartOpen(false)}
-                  className="bg-slate-800 text-slate-400 hover:text-white font-bold text-xs px-3 py-1.5 rounded-xl border border-slate-700 transition"
+                  className="bg-slate-800 text-slate-400 hover:text-white font-bold text-xs px-3 py-1.5 rounded-xl border border-[#2D493E] transition"
                 >
                   ✕ Cerrar
                 </button>
@@ -648,7 +648,7 @@ export default function ClientMenu({
               {/* PRODUCTOS SELECCIONADOS */}
               {cart.length === 0 ? (
                 <div className="text-center py-16 text-slate-500">
-                  <p className="text-4xl mb-2">🍣</p>
+                  <p className="text-4xl mb-2">📱</p>
                   <p className="text-xs">Tu carrito está vacío.</p>
                 </div>
               ) : (
@@ -656,19 +656,19 @@ export default function ClientMenu({
                   {cart.map((item) => (
                     <div
                       key={item.id}
-                      className="bg-slate-950 p-3.5 rounded-2xl border border-slate-800/80 flex justify-between items-center"
+                      className="bg-[#080D0C] p-3.5 rounded-2xl border border-[#243A32]/80 flex justify-between items-center"
                     >
                       <div className="pr-3">
                         <h4 className="font-bold text-xs text-white line-clamp-1 mb-0.5">
                           {item.name}
                         </h4>
 
-                        <p className="text-[11px] text-[#FF0055] font-semibold">
+                        <p className="text-[11px] text-[#007F66] font-semibold">
                           ${item.price.toFixed(2)} c/u
                         </p>
                       </div>
 
-                      <div className="flex items-center gap-2 bg-slate-900 px-2.5 py-1.5 rounded-xl border border-slate-800">
+                      <div className="flex items-center gap-2 bg-[#111B17] px-2.5 py-1.5 rounded-xl border border-[#243A32]">
                         <button
                           onClick={() =>
                             updateQuantity(item.id, -1)
@@ -678,7 +678,7 @@ export default function ClientMenu({
                           -
                         </button>
 
-                        <span className="font-bold text-xs w-4 text-center text-amber-400">
+                        <span className="font-bold text-xs w-4 text-center text-emerald-300">
                           {item.quantity}
                         </span>
 
@@ -686,7 +686,7 @@ export default function ClientMenu({
                           onClick={() =>
                             updateQuantity(item.id, 1)
                           }
-                          className="w-6 h-6 rounded-lg bg-[#FF0055] text-white font-bold text-xs hover:bg-rose-600 flex items-center justify-center transition shadow"
+                          className="w-6 h-6 rounded-lg bg-[#007F66] text-white font-bold text-xs hover:bg-emerald-700 flex items-center justify-center transition shadow"
                         >
                           +
                         </button>
@@ -698,7 +698,7 @@ export default function ClientMenu({
             </div>
 
             {cart.length > 0 && (
-              <div className="border-t border-slate-800 pt-4 space-y-3">
+              <div className="border-t border-[#243A32] pt-4 space-y-3">
 
                 {/* DATOS DEL CLIENTE */}
                 <div className="grid grid-cols-2 gap-2.5">
@@ -714,7 +714,7 @@ export default function ClientMenu({
                       onChange={(e) =>
                         setCustomerName(e.target.value)
                       }
-                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#FF0055]"
+                      className="w-full bg-[#080D0C] border border-[#243A32] rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#007F66]"
                     />
                   </div>
 
@@ -730,7 +730,7 @@ export default function ClientMenu({
                       onChange={(e) =>
                         setCustomerPhone(e.target.value)
                       }
-                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#FF0055]"
+                      className="w-full bg-[#080D0C] border border-[#243A32] rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#007F66]"
                     />
                   </div>
                 </div>
@@ -747,7 +747,7 @@ export default function ClientMenu({
                       setOrderType(e.target.value)
                     }
                     required
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#FF0055]"
+                    className="w-full bg-[#080D0C] border border-[#243A32] rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#007F66]"
                   >
                     <option value="" disabled>
                       Selecciona una modalidad de entrega
@@ -762,12 +762,12 @@ export default function ClientMenu({
                     </option>
 
                     <option value="Local / Mesa">
-                      🍽️ Comer en Local / Mesa
+                      🏬 Compra presencial en tienda
                     </option>
                   </select>
 
                   {!orderType && (
-                    <p className="text-amber-400 text-[10px] mt-1">
+                    <p className="text-emerald-300 text-[10px] mt-1">
                       Selecciona una modalidad para calcular el total de tu pedido.
                     </p>
                   )}
@@ -775,7 +775,7 @@ export default function ClientMenu({
 
                 {/* DATOS DELIVERY */}
                 {orderType === 'Delivery' && (
-                  <div className="space-y-2 bg-slate-950 p-3 rounded-2xl border border-slate-800">
+                  <div className="space-y-2 bg-[#080D0C] p-3 rounded-2xl border border-[#243A32]">
                     <div>
                       <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
                         Zona de Delivery:
@@ -786,7 +786,7 @@ export default function ClientMenu({
                         onChange={(e) =>
                           setDeliveryZone(e.target.value)
                         }
-                        className="w-full bg-slate-900 border border-slate-800 rounded-xl px-2.5 py-1.5 text-xs text-white"
+                        className="w-full bg-[#111B17] border border-[#243A32] rounded-xl px-2.5 py-1.5 text-xs text-white"
                       >
                         <option value="Guarenas">
                           Guarenas ($2.00)
@@ -810,7 +810,7 @@ export default function ClientMenu({
                         onChange={(e) =>
                           setDeliveryAddress(e.target.value)
                         }
-                        className="w-full bg-slate-900 border border-slate-800 rounded-xl px-2.5 py-1.5 text-xs text-white"
+                        className="w-full bg-[#111B17] border border-[#243A32] rounded-xl px-2.5 py-1.5 text-xs text-white"
                       />
                     </div>
                   </div>
@@ -827,7 +827,7 @@ export default function ClientMenu({
                     onChange={(e) =>
                       setPaymentMethod(e.target.value)
                     }
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#FF0055]"
+                    className="w-full bg-[#080D0C] border border-[#243A32] rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#007F66]"
                   >
                     <option value="Pago Móvil (Bs)">
                       📱 Pago Móvil (Bolívares)
@@ -844,7 +844,7 @@ export default function ClientMenu({
                 </div>
 
                 {/* DESGLOSE FINANCIERO */}
-                <div className="bg-slate-950 p-3.5 rounded-2xl border border-slate-800 space-y-1.5 text-xs">
+                <div className="bg-[#080D0C] p-3.5 rounded-2xl border border-[#243A32] space-y-1.5 text-xs">
                   <div className="flex justify-between text-slate-400">
                     <span>Subtotal Productos:</span>
                     <span>${subtotalPrice.toFixed(2)}</span>
@@ -860,7 +860,7 @@ export default function ClientMenu({
                     </div>
                   )}
 
-                  <div className="flex justify-between font-black text-sm text-amber-400 pt-2 border-t border-slate-800">
+                  <div className="flex justify-between font-black text-sm text-emerald-300 pt-2 border-t border-[#243A32]">
                     <span>Total USD:</span>
                     <span>${totalPrice}</span>
                   </div>
@@ -899,8 +899,8 @@ export default function ClientMenu({
       )}
 
       {/* FOOTER */}
-      <footer className="border-t border-slate-900 py-6 text-center text-xs text-slate-500 bg-[#0B0E14]">
-        <p>Takosushi • Guarenas y Guatire.</p>
+      <footer className="border-t border-slate-900 py-6 text-center text-xs text-slate-500 bg-[#080D0C]">
+        <p>Tech Store • Guarenas y Guatire.</p>
       </footer>
     </div>
   );
