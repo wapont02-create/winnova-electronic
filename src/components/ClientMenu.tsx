@@ -542,7 +542,7 @@ export default function ClientMenu({
                       <article key={product.id} className="group flex min-w-0 flex-col overflow-hidden rounded-[22px] border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-xl">
                         <div className="relative h-52 overflow-hidden bg-gradient-to-br from-slate-100 to-blue-50 sm:h-56">
                           {validImage ? (
-                            <img src={imageUrl} alt={product.name} loading="lazy" className="h-full w-full object-contain p-3 transition duration-300" />
+                            <img src={imageUrl} alt={product.name} loading="lazy" className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
                           ) : (
                             <div className="flex h-full items-center justify-center text-5xl text-blue-300">⌁</div>
                           )}
